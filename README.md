@@ -10,6 +10,8 @@ When i want to send the netflix password to my girlfriend or share private infor
 
 It also allowed me to practice managing html servers and encrypting to make safe web applications.
 
-## Installation
+## Quick Start
 
 ## Usage
+
+## Contributing
