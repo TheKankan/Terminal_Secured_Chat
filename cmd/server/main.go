@@ -17,7 +17,6 @@ type apiConfig struct {
 }
 
 func main() {
-	const filepathRoot = "."
 	const port = "8080"
 
 	// Getting .env variables
