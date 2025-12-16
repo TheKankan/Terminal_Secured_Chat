@@ -18,7 +18,7 @@ It also allowed me to practice managing html servers and encrypting to make safe
 ### Installing
 - Clone the repo 
 - Replace the variables in .env.example with your values and rename it .env
-- use go run `./cmd/server` to run the server and then `./cmd/client` in another terminal for each client
+- use `go run ./cmd/server` to run the server and then `go run ./cmd/client` in another terminal for each client
 
 ## Usage
 
