@@ -12,6 +12,14 @@ It also allowed me to practice managing html servers and encrypting to make safe
 
 ## Quick Start
 
+### Prerequisites
+- Go Version 1.25+ installed, you can download it [here](https://go.dev/doc/install)
+
+### Installing
+- Clone the repo 
+- Replace the variables in .env.example with your values and rename it .env
+- use go run `./cmd/server` to run the server and then `./cmd/client` in another terminal for each client
+
 ## Usage
 
 ## Contributing
