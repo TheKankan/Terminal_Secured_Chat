@@ -1,45 +1,58 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
 	"log"
-	"net"
+	"net/http"
 	"os"
 
+	"github.com/TheKankan/TerminalSecuredChat/internal/database"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
+type apiConfig struct {
+	db        *database.Queries
+	jwtSecret string
+}
+
 func main() {
-	// Loading .env file
-	err := godotenv.Load()
+	const filepathRoot = "."
+	const port = "8080"
+
+	// Getting .env variables
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable is not set")
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("SECRET environment variable is not set")
+	}
+
+	// Setting up connection to postgres database
+	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error opening database: %s", err)
+	}
+	dbQueries := database.New(dbConn)
+
+	// Saving variables in config
+	apiCfg := apiConfig{
+		db:        dbQueries,
+		jwtSecret: jwtSecret,
 	}
 
-	// Getting env variables
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatal("PORT environment variable is not set")
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /register", apiCfg.handlerRegister)
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
 	}
 
-	addr := "localhost:" + port
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer listener.Close()
-
-	fmt.Println("Listening on", addr)
-
-	// Waiting for clients
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("accept error:", err)
-			continue
-		}
-
-		fmt.Println("Client connected:", conn.RemoteAddr())
-		conn.Close() // temporary
-	}
+	log.Printf("Serving on port: %s\n", port)
+	log.Fatal(srv.ListenAndServe())
 }
