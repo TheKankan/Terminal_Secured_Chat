@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +15,7 @@ import (
 type apiConfig struct {
 	db        *database.Queries
 	jwtSecret string
+	addr      string
 }
 
 func main() {
@@ -32,20 +34,21 @@ func main() {
 	}
 
 	// Setting up connection to postgres database
-	/*dbConn, err := sql.Open("postgres", dbURL)
+	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Error opening database: %s", err)
 	}
 	dbQueries := database.New(dbConn)
 
+	// Setting adress
+	addr := "localhost:" + port
+
 	// Saving variables in config
 	apiCfg := apiConfig{
 		db:        dbQueries,
 		jwtSecret: jwtSecret,
+		addr:      addr,
 	}
-
-	// Setting adress
-	addr := "localhost:" + port*/
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -68,5 +71,9 @@ func main() {
 		fmt.Print("Invalid command. Please type 'login' or 'register'\n\n")
 	}
 
-	// Une fois que le user est logged in : Lui permettre d'envoyer des messages
+	// User can send & receive messages
+	fmt.Print("Welcome [User] ! You are now connected to the chat ! \n\n")
+	input, _ := reader.ReadString('\n')
+	fmt.Printf("%s", input)
+
 }
