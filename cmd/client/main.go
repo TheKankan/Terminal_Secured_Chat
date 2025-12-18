@@ -4,43 +4,69 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strings"
 
+	"github.com/TheKankan/TerminalSecuredChat/internal/database"
 	"github.com/joho/godotenv"
 )
+
+type apiConfig struct {
+	db        *database.Queries
+	jwtSecret string
+}
 
 func main() {
 	const port = "8080"
 
-	// Loading .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
+	// Getting .env variables
+	godotenv.Load()
+	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable is not set")
 	}
 
-	addr := "localhost:" + port
-
-	// A modifier pour HTTP
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		log.Fatal(err)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("SECRET environment variable is not set")
 	}
-	defer conn.Close()
 
-	// Demander Login ou register
+	// Setting up connection to postgres database
+	/*dbConn, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("Error opening database: %s", err)
+	}
+	dbQueries := database.New(dbConn)
 
-	// Login
-	// Register
+	// Saving variables in config
+	apiCfg := apiConfig{
+		db:        dbQueries,
+		jwtSecret: jwtSecret,
+	}
 
-	// Une fois que le user est logged in : Lui permettre d'envoyer des messages
+	// Setting adress
+	addr := "localhost:" + port*/
+
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Username: ")
-	username, _ := reader.ReadString('\n')
-	username = strings.TrimSpace(username)
+	// Login or Registering initial state
+	for {
+		fmt.Print("Login / Register : ")
+		input, _ := reader.ReadString('\n')
+		input = strings.ToLower(strings.TrimSpace(input))
 
-	fmt.Println(username)
+		if input == "login" {
+			fmt.Print("User chose LOGIN\n\n")
+			// appeler la logique login
+			break
+		}
+		if input == "register" {
+			fmt.Print("User chose REGISTER\n\n")
+			// appeler la logique register
+			break
+		}
+		fmt.Print("Invalid command. Please type 'login' or 'register'\n\n")
+	}
 
+	// Une fois que le user est logged in : Lui permettre d'envoyer des messages
 }
