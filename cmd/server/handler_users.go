@@ -7,4 +7,6 @@ import (
 
 func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("Succesfully registered")
+
+	// A compléter
 }
