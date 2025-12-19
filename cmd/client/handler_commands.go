@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 
-	"golang.org/x/term"
+	_ "github.com/lib/pq"
 )
 
 type Credentials struct {
@@ -15,7 +14,7 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func (cfg *apiConfig) handlerLogin() {
+func (cfg *config) handlerLogin() bool {
 	reader := bufio.NewReader(os.Stdin)
 
 	// Get the username and check if it is valid
@@ -25,30 +24,29 @@ func (cfg *apiConfig) handlerLogin() {
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
-		if isValidInput(input, 20) {
+		if isValidUsername(input) {
 			username = input
 			break
 		}
 
-		fmt.Println("❌ Invalid username (no spaces, max 20 chars)\n")
+		fmt.Print("❌ Invalid username (no spaces, max 20 chars)\n\n")
 	}
 
 	// Get the password and check if it is valid
 	var password string
 	for {
 		fmt.Print("Password: ")
-		bytePwd, _ := term.ReadPassword(int(syscall.Stdin))
-		input := strings.TrimSpace(string(bytePwd))
+		input, _ := reader.ReadString('\n')
 
-		if isValidInput(input, 50) {
+		if isValidPassword(input) {
 			password = input
 			break
 		}
 
-		fmt.Println("❌ Invalid password (no spaces, max 50 chars)\n")
+		fmt.Print("❌ Invalid password (min 4 chars, max 50 chars)\n\n")
 	}
 
-	credentials := Credentials{
+	/*credentials := Credentials{
 		Username: username,
 		Password: password,
 	}
@@ -56,25 +54,83 @@ func (cfg *apiConfig) handlerLogin() {
 	if err != nil {
 		fmt.Println("Failed to send credentials:", err)
 		return
+	}*/
+
+	fmt.Printf("username : %s, password : %s\n", username, password)
+
+	return true
+
+}
+
+func (cfg *config) handlerRegister() bool {
+	url := "http://" + cfg.addr + "/register"
+
+	reader := bufio.NewReader(os.Stdin)
+
+	// Get the username and check if it is valid
+	var username string
+	for {
+		fmt.Print("Username: ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSpace(input)
+
+		if isValidUsername(input) {
+			username = input
+			break
+		}
+
+		fmt.Print("❌ Invalid username (no spaces, max 20 chars)\n\n")
 	}
 
+	// Get the password and check if it is valid
+	var password string
+	for {
+		fmt.Print("Password: ")
+		input, _ := reader.ReadString('\n')
+
+		if isValidPassword(input) {
+			password = input
+			break
+		}
+
+		fmt.Print("❌ Invalid password (min 4 chars, max 50 chars)\n\n")
+	}
+
+	fmt.Printf("username : %s, password : %s\n", username, password)
+
+	credentials := Credentials{
+		Username: username,
+		Password: password,
+	}
+
+	_, err := sendJSON(url, credentials)
+	if err != nil {
+		fmt.Printf("Failed to send credentials: %s \n\n", err)
+		return false
+	}
+	return true
 }
 
-func (cfg *apiConfig) handlerRegister() {
+func isValidUsername(s string) bool {
+	const maxInput = 20
 
-}
-
-func isValidInput(s string, maxInput int) bool {
 	if len(s) == 0 || len(s) > maxInput {
 		return false
 	}
 
-	// No space or multiple lines
+	// No space
 	for _, r := range s {
-		if r == ' ' || r == '\n' || r == '\r' || r == '\t' {
+		if r == ' ' {
 			return false
 		}
 	}
 
 	return true
+}
+
+func isValidPassword(s string) bool {
+	const minInput = 4
+	const maxInput = 100
+
+	return len(s) >= minInput && len(s) <= maxInput
 }

@@ -1,14 +1,14 @@
 # Terminal_Secured_Chat
 
-This project allows multiple users to communicate via a chat in a terminal, messages are encrypted to allow for a secure chat experience
+This project allows multiple users to communicate via a chat in a terminal
 
 ## Motivation
 
-I love Discord but you never know if the message you just sent to your friend is 100% private.
+I love Discord but you never know if the message you just sent is 100% private.
 
-When i want to send the netflix password to my girlfriend or share private informations I want to have a secured way to do it without my informations getting sold, that's why i made this project.
+When i want to send the netflix password to my girlfriend or share private informations I want to have my own way to do it without my informations potentially getting sold, that's why i made this project.
 
-It also allowed me to practice managing html servers and encrypting to make safe web applications.
+This project also gave me the opportunity to practice building a functional backend and managing an HTML server from scratch.
 
 ## Quick Start
 

@@ -2,54 +2,29 @@ package main
 
 import (
 	"bufio"
-	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
-	"github.com/TheKankan/TerminalSecuredChat/internal/database"
-	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
-type apiConfig struct {
-	db        *database.Queries
-	jwtSecret string
-	addr      string
+type config struct {
+	addr string
 }
 
 func main() {
-	const port = "8080"
+	port := "8080"
+	host := "localhost"
 
-	// Getting .env variables
-	godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
-	if dbURL == "" {
-		log.Fatal("DB_URL environment variable is not set")
-	}
-
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("SECRET environment variable is not set")
-	}
-
-	// Setting up connection to postgres database
-	dbConn, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatalf("Error opening database: %s", err)
-	}
-	dbQueries := database.New(dbConn)
-
-	// Setting adress
-	addr := "localhost:" + port
+	addr := host + ":" + port
 
 	// Saving variables in config
-	apiCfg := apiConfig{
-		db:        dbQueries,
-		jwtSecret: jwtSecret,
-		addr:      addr,
+	cfg := config{
+		addr: addr,
 	}
 
+	// Read first input
 	reader := bufio.NewReader(os.Stdin)
 
 	// Login or Registering initial state
@@ -60,15 +35,17 @@ func main() {
 
 		if input == "login" {
 			fmt.Print("User chose LOGIN\n\n")
-			// appeler la logique login
-			break
-		}
-		if input == "register" {
+			if cfg.handlerLogin() {
+				break
+			}
+		} else if input == "register" {
 			fmt.Print("User chose REGISTER\n\n")
-			// appeler la logique register
-			break
+			if cfg.handlerRegister() {
+				break
+			}
+		} else {
+			fmt.Print("Invalid command. Please type 'login' or 'register'\n\n")
 		}
-		fmt.Print("Invalid command. Please type 'login' or 'register'\n\n")
 	}
 
 	// User can send & receive messages

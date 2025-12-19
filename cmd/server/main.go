@@ -12,8 +12,7 @@ import (
 )
 
 type apiConfig struct {
-	db        *database.Queries
-	jwtSecret string
+	db *database.Queries
 }
 
 func main() {
@@ -26,11 +25,6 @@ func main() {
 		log.Fatal("DB_URL environment variable is not set")
 	}
 
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		log.Fatal("SECRET environment variable is not set")
-	}
-
 	// Setting up connection to postgres database
 	dbConn, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -40,8 +34,7 @@ func main() {
 
 	// Saving variables in config
 	apiCfg := apiConfig{
-		db:        dbQueries,
-		jwtSecret: jwtSecret,
+		db: dbQueries,
 	}
 
 	mux := http.NewServeMux()
