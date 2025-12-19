@@ -3,8 +3,27 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 )
+
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func IsJsonValid(r *http.Response) bool {
+	body, _ := io.ReadAll(r.Body)
+
+	if r.StatusCode != http.StatusOK {
+		var errResp ErrorResponse
+		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
+			fmt.Printf("Server Error: %s\n\n", errResp.Error) // Prints JSON error message
+		}
+		return false
+	}
+	return true
+}
 
 func sendJSON(url string, payload interface{}) (*http.Response, error) {
 	// Convert payload to JSON

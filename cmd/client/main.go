@@ -16,7 +16,6 @@ type config struct {
 func main() {
 	port := "8080"
 	host := "localhost"
-
 	addr := host + ":" + port
 
 	// Saving variables in config
@@ -35,11 +34,13 @@ func main() {
 
 		if input == "login" {
 			fmt.Print("User chose LOGIN\n\n")
+			// If login successful, break loop
 			if cfg.handlerLogin() {
 				break
 			}
 		} else if input == "register" {
 			fmt.Print("User chose REGISTER\n\n")
+			// If register successful, break loop
 			if cfg.handlerRegister() {
 				break
 			}
@@ -50,7 +51,9 @@ func main() {
 
 	// User can send & receive messages
 	fmt.Print("Welcome [User] ! You are now connected to the chat ! \n\n")
-	input, _ := reader.ReadString('\n')
-	fmt.Printf("%s", input)
+	for {
+		input, _ := reader.ReadString('\n')
+		fmt.Printf("%s", input)
+	}
 
 }
