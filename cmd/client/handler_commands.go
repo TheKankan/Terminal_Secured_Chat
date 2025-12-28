@@ -103,11 +103,20 @@ func (cfg *config) handlerRegister() bool {
 		Password: password,
 	}
 
-	_, err := sendJSON(url, credentials)
+	resp, err := sendJSON(url, credentials)
 	if err != nil {
 		fmt.Printf("Failed to send credentials: %s \n\n", err)
 		return false
 	}
+	defer resp.Body.Close()
+
+	if !IsJsonValid(resp) {
+		return false
+	}
+
+	// TODO : Add a user struct to be saved in the client
+
+	fmt.Println("✅ Registration successful!")
 	return true
 }
 
