@@ -39,6 +39,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /register", apiCfg.handlerRegister)
+	mux.HandleFunc("POST /login", apiCfg.handlerLogin)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
