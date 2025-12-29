@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -14,7 +16,7 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func (cfg *config) handlerLogin() bool {
+func (cfg *config) handlerLogin() *User {
 	reader := bufio.NewReader(os.Stdin)
 	url := "http://" + cfg.addr + "/login"
 
@@ -54,23 +56,33 @@ func (cfg *config) handlerLogin() bool {
 	resp, err := sendJSON(url, credentials)
 	if err != nil {
 		fmt.Printf("Failed to send credentials: %s \n\n", err)
-		return false
+		return nil
 	}
 	defer resp.Body.Close()
 
-	if !IsJsonValid(resp) {
-		return false
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		var errResp ErrorResponse
+		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
+			fmt.Printf("Server Error: %s\n\n", errResp.Error)
+		}
+		return nil
 	}
 
-	// Todo : Add a way to store user struct that is being sent back
+	var userResp struct {
+		User User `json:"user"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+		fmt.Printf("Failed to decode user: %s\n", err)
+		return nil
+	}
 
-	fmt.Printf("username : %s, password : %s\n", username, password)
-
-	return true
+	fmt.Printf("Logged in as: %s\n", userResp.User.Username)
+	return &userResp.User
 
 }
 
-func (cfg *config) handlerRegister() bool {
+func (cfg *config) handlerRegister() *User {
 	url := "http://" + cfg.addr + "/register"
 
 	reader := bufio.NewReader(os.Stdin)
@@ -114,18 +126,29 @@ func (cfg *config) handlerRegister() bool {
 	resp, err := sendJSON(url, credentials)
 	if err != nil {
 		fmt.Printf("Failed to send credentials: %s \n\n", err)
-		return false
+		return nil
 	}
 	defer resp.Body.Close()
 
-	if !IsJsonValid(resp) {
-		return false
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		var errResp ErrorResponse
+		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
+			fmt.Printf("Server Error: %s\n\n", errResp.Error)
+		}
+		return nil
 	}
 
-	// Todo : Add a way to store user struct that is being sent back
+	var userResp struct {
+		User User `json:"user"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
+		fmt.Printf("Failed to decode user: %s\n", err)
+		return nil
+	}
 
 	fmt.Println("✅ Registration successful!")
-	return true
+	return &userResp.User
 }
 
 func isValidUsername(s string) bool {
