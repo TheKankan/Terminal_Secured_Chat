@@ -15,7 +15,7 @@ type ErrorResponse struct {
 func IsJsonValid(r *http.Response) bool {
 	body, _ := io.ReadAll(r.Body)
 
-	if r.StatusCode != http.StatusOK {
+	if r.StatusCode < 200 || r.StatusCode >= 300 {
 		var errResp ErrorResponse
 		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
 			fmt.Printf("Server Error: %s\n\n", errResp.Error) // Prints JSON error message

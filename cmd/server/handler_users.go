@@ -4,15 +4,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/TheKankan/TerminalSecuredChat/internal/auth"
 	"github.com/TheKankan/TerminalSecuredChat/internal/database"
+	"github.com/google/uuid"
 )
+
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Username  string    `json:"username"`
+	Password  string    `json:"-"`
+}
 
 func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
+	}
+	type response struct {
+		User
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -44,7 +57,14 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("Succesfully registered : %s", params.Username)
-	respondWithJSON(w, http.StatusCreated, user)
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Username:  user.Username,
+		},
+	})
 }
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +72,9 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
+	type response struct {
+		User
+	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
@@ -66,21 +89,25 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := auth.HashPassword(params.Password)
+	user, err := cfg.db.GetUserFromUsername(r.Context(), params.Username)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't hash password", err)
+		respondWithError(w, http.StatusInternalServerError, "Couldn't find user", err)
 		return
 	}
 
-	user, err := cfg.db.CreateUser(r.Context(), database.CreateUserParams{
-		Username:       params.Username,
-		HashedPassword: hashedPassword,
+	match, err := auth.CheckPasswordHash(params.Password, user.HashedPassword)
+	if err != nil || !match {
+		respondWithError(w, http.StatusUnauthorized, "Incorrect email or password", err)
+		return
+	}
+
+	fmt.Printf("Succesfully logged in : %s", params.Username)
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Username:  user.Username,
+		},
 	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create user", err)
-		return
-	}
-
-	fmt.Printf("Succesfully registered : %s", params.Username)
-	respondWithJSON(w, http.StatusCreated, user)
 }
