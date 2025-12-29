@@ -16,10 +16,12 @@ This project also gave me the opportunity to practice building a functional back
 - Go Version 1.25+ installed, you can download it [here](https://go.dev/doc/install)
 
 ### Installing
-- Clone the repo 
-- Replace the variables in .env.example with your values and rename it .env
-- Use `go run ./cmd/server` to run the server and then `go run ./cmd/client` in another terminal for each client
 
 ## Usage
 
 ## Contributing
+
+- Clone the repo 
+- Replace the variables in .env.example with your values and rename it .env (you will need to create your postgres database)
+- Migrate up everything in sql/schema
+- Use `go run ./cmd/server` to run the server and then `go run ./cmd/client` in another terminal for each client

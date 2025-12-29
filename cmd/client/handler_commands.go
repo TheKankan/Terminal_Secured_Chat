@@ -16,6 +16,7 @@ type Credentials struct {
 
 func (cfg *config) handlerLogin() bool {
 	reader := bufio.NewReader(os.Stdin)
+	url := "http://" + cfg.addr + "/login"
 
 	// Get the username and check if it is valid
 	var username string
@@ -46,15 +47,22 @@ func (cfg *config) handlerLogin() bool {
 		fmt.Print("❌ Invalid password (min 4 chars, max 50 chars)\n\n")
 	}
 
-	/*credentials := Credentials{
+	credentials := Credentials{
 		Username: username,
 		Password: password,
 	}
-	_, err := sendJSON(cfg.addr, credentials)
+	resp, err := sendJSON(url, credentials)
 	if err != nil {
-		fmt.Println("Failed to send credentials:", err)
-		return
-	}*/
+		fmt.Printf("Failed to send credentials: %s \n\n", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	if !IsJsonValid(resp) {
+		return false
+	}
+
+	// Todo : Add a way to store user struct that is being sent back
 
 	fmt.Printf("username : %s, password : %s\n", username, password)
 
@@ -114,7 +122,7 @@ func (cfg *config) handlerRegister() bool {
 		return false
 	}
 
-	// TODO : Add a user struct to be saved in the client
+	// Todo : Add a way to store user struct that is being sent back
 
 	fmt.Println("✅ Registration successful!")
 	return true
