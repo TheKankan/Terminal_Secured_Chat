@@ -1,4 +1,4 @@
-# Terminal_Secured_Chat
+# Terminal_Chat
 
 This project allows multiple users to communicate via a chat in a terminal
 
