@@ -55,13 +55,8 @@ func main() {
 
 	// User can send & receive messages
 	fmt.Printf("Welcome %s ! You are now connected to the chat ! \n\n", user.Username)
-	for {
-		input, _ := reader.ReadString('\n')
-		fmt.Printf("%s", input)
 
-		// TODO : send messages when the user writes something
-
-		// TODO : listen for the server in case it sends messages back
-	}
+	// Launch WebSocket connection to tchat
+	cfg.handlerWebSocket()
 
 }

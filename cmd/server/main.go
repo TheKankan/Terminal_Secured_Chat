@@ -40,6 +40,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /register", apiCfg.handlerRegister)
 	mux.HandleFunc("POST /login", apiCfg.handlerLogin)
+	mux.HandleFunc("/ws", handlerWebSocket)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
