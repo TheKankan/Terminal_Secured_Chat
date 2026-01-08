@@ -4,13 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gorilla/websocket"
 )
 
 func (cfg *config) handlerWebSocket() {
-	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", nil)
+	header := http.Header{}
+	header.Set("Authorization", "Bearer "+cfg.token)
+
+	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8080/ws", header)
 	if err != nil {
 		log.Fatal("dial error:", err)
 	}
@@ -25,7 +29,7 @@ func (cfg *config) handlerWebSocket() {
 				return
 			}
 			// Print received message
-			fmt.Println("Server:", string(msg))
+			fmt.Println(string(msg))
 		}
 	}()
 

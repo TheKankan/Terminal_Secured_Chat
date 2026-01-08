@@ -12,7 +12,8 @@ import (
 )
 
 type apiConfig struct {
-	db *database.Queries
+	db        *database.Queries
+	jwtSecret string
 }
 
 func main() {
@@ -21,6 +22,10 @@ func main() {
 	// Getting .env variables
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
+	if dbURL == "" {
+		log.Fatal("DB_URL environment variable is not set")
+	}
+	jwtSecret := os.Getenv("JWT_SECRET")
 	if dbURL == "" {
 		log.Fatal("DB_URL environment variable is not set")
 	}
@@ -34,13 +39,14 @@ func main() {
 
 	// Saving variables in config
 	apiCfg := apiConfig{
-		db: dbQueries,
+		db:        dbQueries,
+		jwtSecret: jwtSecret,
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /register", apiCfg.handlerRegister)
 	mux.HandleFunc("POST /login", apiCfg.handlerLogin)
-	mux.HandleFunc("/ws", handlerWebSocket)
+	mux.HandleFunc("/ws", apiCfg.handlerWebSocket)
 
 	srv := &http.Server{
 		Addr:    ":" + port,

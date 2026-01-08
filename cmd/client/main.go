@@ -10,7 +10,8 @@ import (
 )
 
 type config struct {
-	addr string
+	addr  string
+	token string
 }
 
 func main() {

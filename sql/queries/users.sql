@@ -12,3 +12,7 @@ UPDATE users SET username = $2,
 hashed_password = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: GetUsernameFromID :one
+SELECT username FROM users
+WHERE id = $1;

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
+	"github.com/TheKankan/TerminalSecuredChat/internal/auth"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,11 +18,27 @@ var upgrader = websocket.Upgrader{
 }
 
 var (
-	clients   = make(map[*websocket.Conn]bool)
+	clients   = make(map[*websocket.Conn]string)
 	clientsMu sync.Mutex
 )
 
-func handlerWebSocket(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handlerWebSocket(w http.ResponseWriter, r *http.Request) {
+	// Extract and validate JWT token
+	tokenString, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		http.Error(w, "missing auth token", http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(tokenString, cfg.jwtSecret)
+	if err != nil {
+		http.Error(w, "invalid token", http.StatusUnauthorized)
+		return
+	}
+
+	username, err := cfg.db.GetUsernameFromID(r.Context(), userID)
+
+	// Upgrade HTTP connection to WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("upgrade error:", err)
@@ -28,10 +47,12 @@ func handlerWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	// Register client
 	clientsMu.Lock()
-	clients[conn] = true
+	clients[conn] = username
 	clientsMu.Unlock()
 
-	log.Println("Client connected")
+	log.Printf("Client %s connected \n", username)
+	msg := []byte("User " + username + " connected")
+	broadcast(websocket.TextMessage, msg)
 
 	defer func() {
 		// Defer unregister client
@@ -39,7 +60,9 @@ func handlerWebSocket(w http.ResponseWriter, r *http.Request) {
 		delete(clients, conn)
 		clientsMu.Unlock()
 		conn.Close()
-		log.Println("Client disconnected")
+		log.Printf("Client %s disconnected \n", username)
+		msg := []byte("User " + username + " disconnected")
+		broadcast(websocket.TextMessage, msg)
 	}()
 
 	for {
@@ -49,10 +72,13 @@ func handlerWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		log.Printf("Received: %s\n", msg)
+		// Format message with timestamp and username
+		now := time.Now().Format("15h04")
+		formattedMsg := fmt.Sprintf("[%s] %s: %s", now, username, string(msg))
+		log.Printf("Received: %s\n", formattedMsg)
 
 		// Broadcast to all clients
-		broadcast(msgType, msg)
+		broadcast(msgType, []byte(formattedMsg))
 	}
 }
 

@@ -70,14 +70,17 @@ func (cfg *config) handlerLogin() *User {
 	}
 
 	var userResp struct {
-		User User `json:"user"`
+		User  User   `json:"user"`
+		Token string `json:"token"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		fmt.Printf("Failed to decode user: %s\n", err)
 		return nil
 	}
+	cfg.token = userResp.Token
 
 	fmt.Printf("Logged in as: %s\n", userResp.User.Username)
+	fmt.Printf("Your token: %s\n\n", userResp.Token)
 	return &userResp.User
 
 }
@@ -140,12 +143,14 @@ func (cfg *config) handlerRegister() *User {
 	}
 
 	var userResp struct {
-		User User `json:"user"`
+		User  User   `json:"user"`
+		Token string `json:"token"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&userResp); err != nil {
 		fmt.Printf("Failed to decode user: %s\n", err)
 		return nil
 	}
+	cfg.token = userResp.Token
 
 	fmt.Println("✅ Registration successful!")
 	return &userResp.User
