@@ -10,7 +10,8 @@ import (
 )
 
 type config struct {
-	addr string
+	addr  string
+	token string
 }
 
 func main() {
@@ -26,6 +27,8 @@ func main() {
 	// Read first input
 	reader := bufio.NewReader(os.Stdin)
 
+	var user *User
+
 	// Login or Registering initial state
 	for {
 		fmt.Print("Login / Register : ")
@@ -35,13 +38,15 @@ func main() {
 		if input == "login" {
 			fmt.Print("User chose LOGIN\n\n")
 			// If login successful, break loop
-			if cfg.handlerLogin() {
+			if u := cfg.handlerLogin(); u != nil {
+				user = u
 				break
 			}
 		} else if input == "register" {
 			fmt.Print("User chose REGISTER\n\n")
 			// If register successful, break loop
-			if cfg.handlerRegister() {
+			if u := cfg.handlerRegister(); u != nil {
+				user = u
 				break
 			}
 		} else {
@@ -50,10 +55,9 @@ func main() {
 	}
 
 	// User can send & receive messages
-	fmt.Print("Welcome [User] ! You are now connected to the chat ! \n\n")
-	for {
-		input, _ := reader.ReadString('\n')
-		fmt.Printf("%s", input)
-	}
+	fmt.Printf("Welcome %s ! You are now connected to the chat ! \n\n", user.Username)
+
+	// Launch WebSocket connection to tchat
+	cfg.handlerWebSocket()
 
 }

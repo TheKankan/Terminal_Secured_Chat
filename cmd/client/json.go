@@ -12,6 +12,18 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+type User struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Username  string `json:"username"`
+}
+
+type Message struct {
+	Username string `json:"username"`
+	Content  string `json:"content"`
+}
+
 func IsJsonValid(r *http.Response) bool {
 	body, _ := io.ReadAll(r.Body)
 

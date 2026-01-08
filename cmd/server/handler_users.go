@@ -25,7 +25,8 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	type response struct {
-		User
+		User  User   `json:"user"`
+		Token string `json:"token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -56,7 +57,19 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Succesfully registered : %s", params.Username)
+	// Create JWT token
+	token, err := auth.MakeJWT(
+		user.ID,
+		cfg.jwtSecret,
+		time.Hour,
+	)
+	if err != nil {
+		http.Error(w, "could not create token", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("Succesfully registered : %s \n", user.Username)
+	fmt.Printf("ID: %s\n\n", user.ID)
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
 			ID:        user.ID,
@@ -64,6 +77,7 @@ func (cfg *apiConfig) handlerRegister(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: user.UpdatedAt,
 			Username:  user.Username,
 		},
+		Token: token,
 	})
 }
 
@@ -73,7 +87,8 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 	type response struct {
-		User
+		User  User   `json:"user"`
+		Token string `json:"token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -101,7 +116,19 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("Succesfully logged in : %s", params.Username)
+	// Create JWT token
+	token, err := auth.MakeJWT(
+		user.ID,
+		cfg.jwtSecret,
+		time.Hour,
+	)
+	if err != nil {
+		http.Error(w, "could not create token", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Printf("Succesfully logged in : %s \n", user.Username)
+	fmt.Printf("ID: %s\n\n", user.ID)
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
 			ID:        user.ID,
@@ -109,5 +136,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: user.UpdatedAt,
 			Username:  user.Username,
 		},
+		Token: token,
 	})
 }
